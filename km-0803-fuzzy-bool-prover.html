@@ -21,7 +21,7 @@
 <script>
 	div = document.getElementById('div');
 	var tree = new treePO(1,TRUvect, undefined);
-	var base = tree.retNewBase(0,["{\\bf Go}","Obstacle","CarLeft"],[1,1,1]);
+	var base = tree.retNewBase(0,["LongStay","CarRight"],[0.9,1]);
 	base.ref = "I";
 	var baseNumber = "I";
 	base.retNewDet(1,["CarRight"]).retNewDetWithW(0,["{\\bf Stop}"],1);
@@ -40,8 +40,7 @@
 	document.body.proofHistory.forEach(function(item, i, arr) {
 		div.innerHTML += item;
 	});
-	base.retActions()[0].show();
-	
+	base.chooseAct();	
 </script>
 </body>
 </html>
