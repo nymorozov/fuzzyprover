@@ -50,6 +50,10 @@ treePO.prototype = {
 	retNewBase: function(Q,A,W){
 		sibl = new treePO (Q,A, this);
 		sibl.propositWeights = W.concat()
+		sibl.propositSrc = [];
+		sibl.propositWeights.forEach(function(item, i, arr) {
+			sibl.propositSrc.push("init");
+		});
 		this.deti.push(sibl);
 		return sibl;
 	},
@@ -92,6 +96,7 @@ treePO.prototype = {
 		this.proposit.forEach(function(item, i, arr) {
 			retStr += item;
 			if(thisNode.propositWeights != undefined) retStr += ("_{("+thisNode.propositWeights[i]+")}");
+			if(thisNode.propositSrc != undefined) retStr += ("^{"+thisNode.propositSrc[i]+"}");
 			if(i != arr.length-1) retStr+=razdel;
 		});
 		delete thisNode;
@@ -212,6 +217,7 @@ treePO.prototype.eraseTriv = function() {
 		weigthBuf *= sibl.weight;
 		sibl.proposit.forEach(function(item, i, arr) {
 			parent.propositWeights.push(weigthBuf);
+			parent.propositSrc.push(sibl.ref);
 		});
 		delete weigthBuf;
 		////////////// проверяем базу //////////
@@ -347,24 +353,75 @@ treePO.prototype.baseAudit = function() {
 
 }
 // Действие //
-function action(NAME,W) {
-	this.name = NAME;
-	this.w = W;
+function action() {
+	this.name = [];
+	this.w = [];
+	this.src = [];
+}
+action.prototype.pushItem = function(NAME,W,SRC) {
+	this.name.push(NAME);
+	this.w.push(W);
+	this.src.push(SRC);
 }
 action.prototype.show = function() {
-	alert(this.name+" ("+this.w+")");
+	var bufstr = "";
+	var thisBuf = this;
+	this.name.forEach(function(item, i, arr) {
+		bufstr += (item+"("+thisBuf.w[i]+", "+thisBuf.src[i]+")\n");
+	});
+	
+	alert(bufstr);
+	delete bufstr,thisBuf;
 }
-//	Выводим вектор действий	//
-treePO.prototype.retActions = function() {
-	var bufActions = [];
+// Нормировка //
+action.prototype.norm = function() {
+	var bufSum = 0;
+	this.w.forEach(function(item, i, arr) {
+		bufSum += item;
+	});
+	if(bufSum > 0){
+		var bufW =[];
+		this.w.forEach(function(item, i, arr) {
+			bufW.push(item/bufSum);
+		});
+		this.w = bufW;
+		delete bufW;
+	} else {
+		alert("Not able to normalize");
+	}
+	delete bufSum;
+}
+// Дефазификация //
+action.prototype.collapse = function() {
+	var rand = Math.random();
+	var fence = 0;
+	var retValue = 0;
+	while(rand > fence) {
+		fence += this.w[retValue];
+		retValue++;
+	}
+	delete fence,rand;
+	return retValue-1;
+}
+//	Получаем вектор действий	//
+treePO.prototype.retActions = function(ACT) {
 	var thisNode = this;
 	this.proposit.forEach(function(item, i, arr) {
 		if(item.indexOf("{\\bf") == 0) {
-			var bufElem = new action(item,thisNode.propositWeights[i]);
-			bufActions.push(bufElem);
-			delete bufElem;
+			ACT.pushItem(item,thisNode.propositWeights[i],thisNode.propositSrc[i]);
 		}
 	});
 	delete thisNode;
-	return bufActions;
+	return ACT;
 }
+// Выбираем действие //
+treePO.prototype.chooseAct = function() {
+	var actVect = new action();
+	base.retActions(actVect);
+	actVect.norm();
+	actVect.show();
+	var chosenI = actVect.collapse();
+	alert(actVect.src[chosenI]+": "+actVect.name[chosenI]);
+	
+}
+
