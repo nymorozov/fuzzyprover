@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<!-- Тег meta для указания кодировки -->
+	<meta charset="utf-8">
+	<!-- https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML -->
+	<script type="text/javascript" src="MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+	<style>
+   input, body {
+    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-size: 11pt; /* Размер шрифта в пунктах */ 
+   }
+  </style>
+</head>
+
+<body>
+<div id="div"></div>
+	
+<script src="km-0803-fuzzy-bool-prover-functions.js"></script>
+<script>
+	div = document.getElementById('div');
+	var tree = new treePO(1,TRUvect, undefined);
+	var base = tree.retNewBase(0,["{\\bf Go}","Obstacle","CarLeft"],[1,1,1]);
+	base.ref = "I";
+	var baseNumber = "I";
+	base.retNewDet(1,["CarRight"]).retNewDetWithW(0,["{\\bf Stop}"],1);
+	base.retNewDet(1,["CarRight","LongStay"]).retNewDetWithW(0,["{\\bf Go}"],1);
+	var iter = base.retNewDet(1,["CarLeft","NoObstacle"]);
+	iter.retNewDetWithW(0,["{\\bf Go}"],1);
+	iter.retNewDetWithW(0,["{\\bf Stop}"],1);
+	
+	base.retNewDet(1,["WillBeCrash"]).retNewDetWithW(0,["{\\bf Stop}","{\\neg}{\\bf Go}"],1);
+	base.retNewDet(1,["{\\bf Go}","Obstacle"]).retNewDetWithW(0,["WillBeCrash"],1);
+	
+	base.addLink("B");
+	
+	tree.addPOTeX(div,"F=");
+	tree.prove();
+	document.body.proofHistory.forEach(function(item, i, arr) {
+		div.innerHTML += item;
+	});
+	base.retActions()[0].show();
+	
+</script>
+</body>
+</html>
